@@ -7,6 +7,9 @@ const createPostSchema = z.object({
   mediaUrl: z.string().min(1),
   mediaType: z.enum(["IMAGE", "VIDEO"]),
   caption: z.string().optional(),
+  detectedItems: z.any().optional(),
+  colorPalette: z.array(z.string()).optional(),
+  aiDescription: z.string().optional(),
 });
 
 // GET /api/posts — paginated feed
@@ -108,6 +111,9 @@ export async function POST(req: Request) {
         mediaUrl: result.data.mediaUrl,
         mediaType: result.data.mediaType,
         caption: result.data.caption || null,
+        aiDescription: result.data.aiDescription || null,
+        colorPalette: result.data.colorPalette || undefined,
+        detectedItems: result.data.detectedItems || undefined,
       },
       include: {
         user: {
