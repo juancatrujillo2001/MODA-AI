@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma init)",
+      "Bash(npx prisma validate:*)",
+      "Bash(npx prisma generate)",
+      "Bash(timeout 15 npx next dev:*)",
+      "Bash(npx prisma db push)",
+      "Bash(curl:*)",
+      "Bash(openssl rand:*)",
+      "Bash(npx next build)",
+      "WebFetch(domain:www.nanabanana.ai)",
+      "WebSearch",
+      "Bash(npx tsc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(test:*)",
+      "Bash(node -e:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
