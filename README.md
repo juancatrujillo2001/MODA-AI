@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MODA-AI 👗🤖
 
-## Getting Started
+**La plataforma digital de moda más completa de la región, construida con AI desde cero.**
 
-First, run the development server:
+## ¿Qué es MODA-AI?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+MODA-AI es una plataforma que conecta marcas de moda con clientes, resolviendo tres problemas reales de la industria:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Ventas:** Las marcas pierden clientes por experiencias digitales pobres. MODA-AI eleva la experiencia de compra con herramientas de AI que personalizan recomendaciones y facilitan la decisión.
+- **Logística:** Las marcas gastan tiempo y dinero en fricciones operativas que la AI puede resolver sola — desde gestión de pedidos hasta seguimiento automatizado.
+- **Experiencia del cliente:** Probador virtual con AI, feed social enfocado 100% en moda, y herramientas inteligentes que hacen que comprar ropa online se sienta natural.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS
+- **Backend:** Prisma, Node.js
+- **AI:** Claude Code, Claude API, Cursor
+- **Desarrollo:** Cursor + Claude Code (AI-first development)
 
-## Learn More
+## Estado del proyecto
 
-To learn more about Next.js, take a look at the following resources:
+🟡 En desarrollo activo — MVP en construcción.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Visión
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Construir el ecosistema digital más relevante de moda en Latinoamérica: e-commerce + red social + herramientas de AI para marcas, todo en un solo lugar.
 
-## Deploy on Vercel
+## Autor
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Juan Camilo Trujillo Vargas**
+Economista & Negociador Internacional | AI Builder
+- [LinkedIn](https://www.linkedin.com/in/juancamilo-trujillo-vargas)
+- juanca_vargas@outlook.com
