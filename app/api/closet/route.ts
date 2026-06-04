@@ -38,10 +38,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Closet error:", error);
-    return NextResponse.json(
-      { error: "Failed to load closet" },
-      { status: 500 }
-    );
+    return NextResponse.json([]);
   }
 }
 

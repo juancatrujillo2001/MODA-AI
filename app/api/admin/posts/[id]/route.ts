@@ -5,13 +5,14 @@ import { requireAdmin } from "@/lib/admin";
 // DELETE /api/admin/posts/[id] — delete a post (moderation)
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await requireAdmin();
 
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true, caption: true, user: { select: { username: true } } },
     });
 
@@ -20,7 +21,7 @@ export async function DELETE(
     }
 
     // Cascade delete handles likes, comments, saved posts
-    await prisma.post.delete({ where: { id: params.id } });
+    await prisma.post.delete({ where: { id: id } });
 
     return NextResponse.json({
       message: `Post by @${post.user.username} deleted`,

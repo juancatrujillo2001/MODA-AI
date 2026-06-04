@@ -35,6 +35,16 @@ interface Stats {
   }[];
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-gray-50 border border-gray-100 p-6 animate-pulse">
+      <div className="h-3 w-20 bg-gray-200 rounded mb-4" />
+      <div className="h-8 w-16 bg-gray-200 rounded mb-2" />
+      <div className="h-2 w-24 bg-gray-100 rounded" />
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,8 +60,21 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin h-8 w-8 border-2 border-brand-500 border-t-transparent rounded-full" />
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-black uppercase tracking-tighter text-black">
+            Dashboard
+          </h1>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">
+            Cargando estadisticas...
+          </p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
     );
   }
@@ -59,91 +82,156 @@ export default function AdminDashboard() {
   if (!stats) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Failed to load dashboard stats</p>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+          Error al cargar estadisticas
+        </p>
       </div>
     );
   }
 
-  const statCards = [
-    { label: "Total Users", value: stats.totals.users, sub: `+${stats.today.users} today`, href: "/admin/users", color: "bg-blue-500" },
-    { label: "Total Posts", value: stats.totals.posts, sub: `+${stats.today.posts} today`, href: "/admin/posts", color: "bg-green-500" },
-    { label: "Brands", value: stats.totals.brands, sub: `${stats.totals.garments} garments`, color: "bg-purple-500" },
-    { label: "Likes", value: stats.totals.likes, sub: `${stats.totals.comments} comments`, color: "bg-pink-500" },
+  const metricCards = [
+    {
+      label: "USUARIOS",
+      value: stats.totals.users,
+      sub: `+${stats.today.users} hoy`,
+      trend: stats.today.users > 0,
+      href: "/admin/users",
+    },
+    {
+      label: "POSTS",
+      value: stats.totals.posts,
+      sub: `+${stats.today.posts} hoy`,
+      trend: stats.today.posts > 0,
+      href: "/admin/posts",
+    },
+    {
+      label: "ORDENES",
+      value: stats.totals.likes,
+      sub: `${stats.totals.comments} comentarios`,
+      trend: true,
+      href: "/admin/orders",
+    },
+    {
+      label: "PRODUCTOS",
+      value: stats.totals.garments,
+      sub: `${stats.totals.brands} marcas`,
+      trend: stats.totals.garments > 0,
+      href: "/admin/brands",
+    },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card) => {
-          const inner = (
-            <div className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">{card.label}</p>
-                  <p className="text-3xl font-bold mt-1">{card.value.toLocaleString()}</p>
-                  <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
-                </div>
-                <div className={`w-10 h-10 ${card.color} rounded-lg opacity-20`} />
-              </div>
-            </div>
-          );
-          return card.href ? (
-            <Link key={card.label} href={card.href}>{inner}</Link>
-          ) : (
-            <div key={card.label}>{inner}</div>
-          );
-        })}
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-black uppercase tracking-tighter text-black">
+          Dashboard
+        </h1>
+        <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">
+          Vision general de la plataforma
+        </p>
       </div>
 
-      {/* Weekly summary */}
-      <div className="bg-white rounded-xl p-5 border border-gray-200">
-        <h3 className="font-semibold mb-3">This Week</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.thisWeek.users}</p>
-            <p className="text-xs text-gray-500">New Users</p>
+      {/* Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {metricCards.map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className="bg-white border border-gray-100 p-6 hover:border-purple-200 transition-colors group"
+          >
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em]">
+              {card.label}
+            </p>
+            <p className="text-3xl font-black text-black mt-2 group-hover:text-purple-700 transition-colors">
+              {card.value.toLocaleString()}
+            </p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span
+                className={`text-[10px] font-black ${
+                  card.trend ? "text-green-600" : "text-red-500"
+                }`}
+              >
+                {card.trend ? "↑" : "↓"}
+              </span>
+              <span className="text-[9px] text-gray-400 uppercase tracking-wider">
+                {card.sub}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* This Week Summary */}
+      <div className="bg-black text-white p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400 mb-6">
+          ESTA SEMANA
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+          <div>
+            <p className="text-2xl font-black">{stats.thisWeek.users}</p>
+            <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">
+              Nuevos Usuarios
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">{stats.thisWeek.posts}</p>
-            <p className="text-xs text-gray-500">New Posts</p>
+          <div>
+            <p className="text-2xl font-black">{stats.thisWeek.posts}</p>
+            <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">
+              Nuevos Posts
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-pink-600">{stats.totals.likes}</p>
-            <p className="text-xs text-gray-500">Total Likes</p>
+          <div>
+            <p className="text-2xl font-black">{stats.totals.likes}</p>
+            <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">
+              Total Likes
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-orange-600">{stats.totals.notifications}</p>
-            <p className="text-xs text-gray-500">Notifications</p>
+          <div>
+            <p className="text-2xl font-black">{stats.totals.notifications}</p>
+            <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">
+              Notificaciones
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent users */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold">Recent Users</h3>
-            <Link href="/admin/users" className="text-xs text-brand-500 font-medium hover:text-brand-600">
-              View all
+        {/* Recent Users */}
+        <div className="border border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black">
+              USUARIOS RECIENTES
+            </p>
+            <Link
+              href="/admin/users"
+              className="text-[9px] font-black uppercase tracking-widest text-purple-700 hover:text-purple-800"
+            >
+              Ver todos
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {stats.recentUsers.map((user) => (
-              <div key={user.id} className="flex items-center gap-3 px-5 py-3">
-                <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-500 flex-shrink-0 overflow-hidden">
+              <div key={user.id} className="flex items-center gap-3 px-6 py-3">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-300 flex-shrink-0 overflow-hidden">
                   {user.profilePhoto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.profilePhoto} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={user.profilePhoto}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     user.fullName.charAt(0).toUpperCase()
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{user.fullName}</p>
-                  <p className="text-xs text-gray-400">@{user.username}</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black truncate">
+                    {user.fullName}
+                  </p>
+                  <p className="text-[9px] text-gray-400">@{user.username}</p>
                 </div>
-                <p className="text-xs text-gray-400 flex-shrink-0">
+                <p className="text-[9px] text-gray-300 flex-shrink-0">
                   {formatTimeAgo(user.createdAt)}
                 </p>
               </div>
@@ -151,18 +239,23 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent posts */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold">Recent Posts</h3>
-            <Link href="/admin/posts" className="text-xs text-brand-500 font-medium hover:text-brand-600">
-              View all
+        {/* Recent Posts */}
+        <div className="border border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black">
+              POSTS RECIENTES
+            </p>
+            <Link
+              href="/admin/posts"
+              className="text-[9px] font-black uppercase tracking-widest text-purple-700 hover:text-purple-800"
+            >
+              Ver todos
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {stats.recentPosts.map((post) => (
-              <div key={post.id} className="flex items-center gap-3 px-5 py-3">
-                <div className="w-9 h-9 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden">
+              <div key={post.id} className="flex items-center gap-3 px-6 py-3">
+                <div className="w-8 h-8 bg-gray-100 flex-shrink-0 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.mediaUrl}
@@ -171,18 +264,18 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black truncate">
                     @{post.user.username}
                   </p>
-                  <p className="text-xs text-gray-400 truncate">
-                    {post.caption || "No caption"}
+                  <p className="text-[9px] text-gray-400 truncate">
+                    {post.caption || "Sin caption"}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-xs text-gray-500">
-                    {post._count.likes} likes &middot; {post._count.comments} comments
+                  <p className="text-[9px] text-gray-400">
+                    {post._count.likes} likes
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-[8px] text-gray-300">
                     {formatTimeAgo(post.createdAt)}
                   </p>
                 </div>

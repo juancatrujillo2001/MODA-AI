@@ -6,13 +6,14 @@ import { getOpenAI } from "@/lib/openai";
 // POST /api/posts/[id]/scan — AI scan garments in post image
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await requireSession();
 
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!post) {
@@ -87,7 +88,7 @@ Return ONLY valid JSON, no markdown or explanation.`,
 
     // Cache the results
     await prisma.post.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         aiDescription: scanResult.description,
         colorPalette: scanResult.colorPalette,

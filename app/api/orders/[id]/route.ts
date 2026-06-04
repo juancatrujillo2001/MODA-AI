@@ -5,13 +5,14 @@ import { requireSession } from "@/lib/session";
 // GET /api/orders/[id] — single order detail
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
 
     const order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!order) {

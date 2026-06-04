@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/session";
 
-// GET /api/search?q=&type=all|users|posts|brands
+// GET /api/search?q=&type=all|users|posts|brands|garments
 export async function GET(req: NextRequest) {
   try {
     await requireSession();
@@ -12,13 +12,14 @@ export async function GET(req: NextRequest) {
     const type = searchParams.get("type") || "all";
 
     if (!query || query.length < 2) {
-      return NextResponse.json({ users: [], posts: [], brands: [] });
+      return NextResponse.json({ users: [], posts: [], brands: [], garments: [] });
     }
 
     const results: {
       users?: unknown[];
       posts?: unknown[];
       brands?: unknown[];
+      garments?: unknown[];
     } = {};
 
     // Search users
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Search posts by caption
+    // Search posts by caption, aiDescription, or detectedItems
     if (type === "all" || type === "posts") {
       results.posts = await prisma.post.findMany({
         where: {
@@ -56,6 +57,8 @@ export async function GET(req: NextRequest) {
           mediaUrl: true,
           mediaType: true,
           caption: true,
+          aiDescription: true,
+          detectedItems: true,
           _count: { select: { likes: true, comments: true } },
           user: {
             select: {
@@ -90,12 +93,34 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Search garments
+    if (type === "all" || type === "garments") {
+      results.garments = await prisma.garment.findMany({
+        where: {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } },
+            { category: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          price: true,
+          photos: true,
+          brand: { select: { name: true, logo: true } },
+        },
+        take: 20,
+      });
+    }
+
     return NextResponse.json(results);
   } catch (error) {
     if ((error as Error).message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Search error:", error);
-    return NextResponse.json({ error: "Search failed" }, { status: 500 });
+    return NextResponse.json({ users: [], posts: [], brands: [], garments: [] });
   }
 }

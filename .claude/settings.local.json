@@ -17,7 +17,30 @@
       "Bash(xargs ls:*)",
       "Bash(test:*)",
       "Bash(node -e:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run dev:*)",
+      "Bash(claude install:*)",
+      "Bash(cd:*)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && npx next dev --port 3000)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && npx prisma db push --accept-data-loss 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && npx next dev --port 3000 2>&1)",
+      "WebFetch(domain:localhost)",
+      "Bash(taskkill //F //IM node.exe 2>/dev/null; sleep 2; rm -rf \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\\\\.next\")",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && rm -rf .next)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && node -e \"\nconst { Pool } = require\\('pg'\\);\nconst pool = new Pool\\({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }\\);\npool.query\\('SELECT 1 as test'\\)\n  .then\\(r => { console.log\\('OK:', r.rows\\); pool.end\\(\\); }\\)\n  .catch\\(e => { console.error\\('FAIL:', e.code, '-', e.message\\); pool.end\\(\\); }\\);\n\" 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && rm -rf .next && npx next build 2>&1 | tail -30)",
+      "Bash(timeout 8 && cat \"C:\\\\Users\\\\maria\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-maria-OneDrive-Escritorio-Closet\\\\76d3c3fb-03a0-420c-a80c-d9319bf5c30a\\\\tasks\\\\bfez7jsx2.output\" 2>/dev/null | tail -10)",
+      "Bash(mkdir -p \"C:/Users/maria/OneDrive/Escritorio/Closet/app/api/brands\" && mkdir -p \"C:/Users/maria/OneDrive/Escritorio/Closet/app/api/users/trending\")",
+      "Bash(cd \"C:/Users/maria/OneDrive/Escritorio/Closet\" && npx tsx scripts/create-admin.ts 2>&1)",
+      "Bash(cd \"C:/Users/maria/OneDrive/Escritorio/Closet\" && npx dotenv -e .env -- npx tsx scripts/create-admin.ts 2>&1)",
+      "Bash(cd \"C:/Users/maria/OneDrive/Escritorio/Closet\" && node scripts/create-admin.mjs 2>&1)",
+      "Bash(cd \"C:/Users/maria/OneDrive/Escritorio/Closet\" && node scripts/create-admin.cjs 2>&1)",
+      "Bash(cd \"C:/Users/maria/OneDrive/Escritorio/Closet\" && npx ts-node --project tsconfig.json scripts/create-admin.ts 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && npm audit fix 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && npx next dev -p 3000 2>&1 | head -10)",
+      "Bash(npm audit:*)",
+      "Bash(cd \"C:\\\\Users\\\\maria\\\\OneDrive\\\\Escritorio\\\\Closet\" && sed -i 's/{ params }: { params: { id: string } }/{ params }: { params: Promise<{ id: string }> }/g' \\\\\n  app/api/admin/brands/[id]/route.ts \\\\\n  app/api/admin/products/[id]/route.ts \\\\\n  app/api/posts/[id]/scan/route.ts \\\\\n  app/api/orders/[id]/route.ts \\\\\n  app/api/cart/[id]/route.ts \\\\\n  app/api/admin/posts/[id]/route.ts \\\\\n  app/api/admin/users/[id]/route.ts \\\\\n  app/api/notifications/[id]/read/route.ts \\\\\n  app/api/closet/[id]/route.ts \\\\\n  app/api/posts/[id]/route.ts \\\\\n  app/api/users/[id]/follow/route.ts \\\\\n  app/api/posts/[id]/save/route.ts \\\\\n  app/api/posts/[id]/comment/route.ts \\\\\n  app/api/posts/[id]/like/route.ts && \\\\\nsed -i 's/{ params }: { params: { username: string } }/{ params }: { params: Promise<{ username: string }> }/g' \\\\\n  app/api/users/profile/[username]/route.ts && \\\\\necho \"Done\")"
     ]
   }
 }

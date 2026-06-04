@@ -5,11 +5,12 @@ import { requireSession } from "@/lib/session";
 // POST /api/users/[id]/follow — toggle follow
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
-    const targetId = params.id;
+    const targetId = id;
 
     if (targetId === session.user.id) {
       return NextResponse.json(

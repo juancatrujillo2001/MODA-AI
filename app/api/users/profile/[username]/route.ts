@@ -5,14 +5,15 @@ import { getSession } from "@/lib/session";
 // GET /api/users/profile/[username] — get user profile
 export async function GET(
   _req: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   try {
+    const { username } = await params;
     const session = await getSession();
     const currentUserId = session?.user?.id;
 
     const user = await prisma.user.findUnique({
-      where: { username: params.username },
+      where: { username: username },
       select: {
         id: true,
         fullName: true,

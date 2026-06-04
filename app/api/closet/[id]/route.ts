@@ -5,13 +5,14 @@ import { requireSession } from "@/lib/session";
 // DELETE /api/closet/[id] — remove item from closet
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
 
     const item = await prisma.closetItem.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!item) {
@@ -22,7 +23,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.closetItem.delete({ where: { id: params.id } });
+    await prisma.closetItem.delete({ where: { id: id } });
 
     return NextResponse.json({ message: "Item removed from closet" });
   } catch (error) {

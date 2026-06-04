@@ -5,13 +5,14 @@ import { requireSession } from "@/lib/session";
 // PATCH /api/notifications/[id]/read — mark single notification as read
 export async function PATCH(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
 
     const notification = await prisma.notification.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!notification || notification.userId !== session.user.id) {
@@ -19,7 +20,7 @@ export async function PATCH(
     }
 
     await prisma.notification.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { read: true },
     });
 

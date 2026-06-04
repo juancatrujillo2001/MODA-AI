@@ -16,14 +16,13 @@ export const registerSchema = z.object({
     ),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "Password must contain at least one special character"
-    ),
+    .min(8, "Password must be at least 8 characters"),
+  gender: z.string().optional(),
+  height: z.number().min(50).max(300).optional(),
+  weight: z.number().min(20).max(500).optional(),
+  bodyMeasurements: z.any().optional(),
+  profilePhoto: z.string().optional(),
+  avatar: z.string().optional(),
 });
 
 export const loginSchema = z.object({

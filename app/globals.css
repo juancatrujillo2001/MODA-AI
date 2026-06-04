@@ -3,15 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --brand: #7C3AED;
+  --bg-primary: #0a0a0f;
+  --bg-card: #111118;
+  --bg-elevated: #16161f;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --accent: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-gradient: linear-gradient(135deg, #a855f7, #ec4899);
+  --text-primary: #f0f0f0;
+  --text-secondary: #888;
+  --text-muted: #555;
+  --shadow-card: 0 4px 40px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 8px 50px rgba(168, 85, 247, 0.15);
+  --radius-card: 20px;
+  --background: #0a0a0f;
+  --foreground: #f0f0f0;
+  --brand: #a855f7;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  background-color: #0a0a0f !important;
+  color: #f0f0f0;
 }
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 4px; }
 
 /* ─── Page transitions ─────────────────────────────── */
 @layer utilities {
@@ -20,7 +43,7 @@ body {
   }
 
   .animate-slide-up {
-    animation: slideUp 0.35s ease-out;
+    animation: slideUp 0.6s ease forwards;
   }
 
   .animate-scale-in {
@@ -34,7 +57,7 @@ body {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -43,25 +66,34 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
-/* ─── Animal-print accent pattern ──────────────────── */
-.animal-print-bg {
-  background-image: radial-gradient(ellipse 14px 10px at 20% 30%, rgba(124, 58, 237, 0.06) 50%, transparent 51%),
-    radial-gradient(ellipse 10px 14px at 60% 15%, rgba(124, 58, 237, 0.05) 50%, transparent 51%),
-    radial-gradient(ellipse 12px 8px at 80% 60%, rgba(124, 58, 237, 0.06) 50%, transparent 51%),
-    radial-gradient(ellipse 8px 12px at 40% 75%, rgba(124, 58, 237, 0.04) 50%, transparent 51%),
-    radial-gradient(ellipse 16px 10px at 10% 85%, rgba(124, 58, 237, 0.05) 50%, transparent 51%),
-    radial-gradient(ellipse 10px 16px at 90% 40%, rgba(124, 58, 237, 0.04) 50%, transparent 51%);
+/* ─── Landing shimmer gradient ────────────────────── */
+@keyframes shimmerGradient {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 
-.animal-print-border {
-  border-image: repeating-linear-gradient(
-    90deg,
-    rgba(124, 58, 237, 0.15) 0px,
-    rgba(124, 58, 237, 0.05) 4px,
-    rgba(124, 58, 237, 0.15) 8px,
-    rgba(124, 58, 237, 0.0) 12px,
-    rgba(124, 58, 237, 0.1) 16px
-  ) 1;
+/* ─── Floating animation ──────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+/* ─── Fade in up ──────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Glow pulse ──────────────────────────────────── */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(168,85,247,0.3); }
+  50% { box-shadow: 0 0 40px rgba(168,85,247,0.6); }
 }
 
 /* ─── Skeleton loading ─────────────────────────────── */
@@ -71,7 +103,7 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #16161f 25%, #1e1e2a 50%, #16161f 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
@@ -86,31 +118,59 @@ body {
   animation: slideUp 0.3s ease-out;
 }
 
+/* ─── Hero floating card animation ─────────────────── */
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.hero-float {
+  animation: heroFloat 4s ease-in-out infinite;
+}
+
 /* ─── Button press effect ──────────────────────────── */
 .btn-press:active {
   transform: scale(0.97);
   transition: transform 0.1s;
 }
 
+/* ─── Card flip 3D ────────────────────────────────── */
+.card-flip-container {
+  perspective: 1000px;
+}
+
+.card-flip-inner {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.card-flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── No-scrollbar utility ────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ─── Safe area for mobile ─────────────────────────── */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ─── Scrollbar styling ────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
 }

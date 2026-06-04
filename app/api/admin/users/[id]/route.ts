@@ -10,9 +10,10 @@ const updateUserSchema = z.object({
 // PATCH /api/admin/users/[id] — update user (toggle admin, etc.)
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireAdmin();
     const body = await req.json();
     const result = updateUserSchema.safeParse(body);
@@ -25,7 +26,7 @@ export async function PATCH(
     }
 
     // Prevent self-demotion
-    if (result.data.isAdmin === false && params.id === session.user.id) {
+    if (result.data.isAdmin === false && id === session.user.id) {
       return NextResponse.json(
         { error: "You cannot remove your own admin privileges" },
         { status: 400 }
@@ -33,7 +34,7 @@ export async function PATCH(
     }
 
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id: id },
       data: result.data,
       select: {
         id: true,
@@ -60,13 +61,14 @@ export async function PATCH(
 // DELETE /api/admin/users/[id] — delete user and all their data
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireAdmin();
 
     // Prevent self-deletion
-    if (params.id === session.user.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: "You cannot delete your own account" },
         { status: 400 }
@@ -74,7 +76,7 @@ export async function DELETE(
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true, username: true },
     });
 
@@ -83,7 +85,7 @@ export async function DELETE(
     }
 
     // Cascade delete handles all related data
-    await prisma.user.delete({ where: { id: params.id } });
+    await prisma.user.delete({ where: { id: id } });
 
     return NextResponse.json({ message: `User ${user.username} deleted` });
   } catch (error) {

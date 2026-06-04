@@ -5,11 +5,12 @@ import { requireSession } from "@/lib/session";
 // POST /api/posts/[id]/like — toggle like
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
-    const postId = params.id;
+    const postId = id;
 
     const existing = await prisma.like.findUnique({
       where: {

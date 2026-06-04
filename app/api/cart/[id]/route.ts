@@ -10,9 +10,10 @@ const updateSchema = z.object({
 // PATCH /api/cart/[id] — update cart item quantity
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
     const body = await req.json();
     const result = updateSchema.safeParse(body);
@@ -25,7 +26,7 @@ export async function PATCH(
     }
 
     const item = await prisma.cartItem.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!item) {
@@ -37,7 +38,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.cartItem.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { quantity: result.data.quantity },
       include: {
         garment: {
@@ -61,13 +62,14 @@ export async function PATCH(
 // DELETE /api/cart/[id] — remove item from cart
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await requireSession();
 
     const item = await prisma.cartItem.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!item) {
@@ -78,7 +80,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.cartItem.delete({ where: { id: params.id } });
+    await prisma.cartItem.delete({ where: { id: id } });
 
     return NextResponse.json({ message: "Item removed from cart" });
   } catch (error) {

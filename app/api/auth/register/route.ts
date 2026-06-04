@@ -5,38 +5,59 @@ import { registerSchema } from "@/lib/validations/auth";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const result = registerSchema.safeParse(body);
-
-    if (!result.success) {
+    let body;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { error: result.error.issues[0].message },
+        { error: "Solicitud invalida." },
         { status: 400 }
       );
     }
 
-    const { fullName, email, username, password } = result.data;
+    const result = registerSchema.safeParse(body);
+
+    if (!result.success) {
+      const msg = result.error.issues.map((i) => i.message).join(", ");
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+
+    const {
+      fullName,
+      email,
+      username,
+      password,
+      gender,
+      height,
+      weight,
+      bodyMeasurements,
+      profilePhoto,
+      avatar,
+    } = result.data;
+
     const emailLower = email.toLowerCase();
     const usernameLower = username.toLowerCase();
 
+    // Check existing email
     const existingEmail = await prisma.user.findUnique({
       where: { email: emailLower },
     });
 
     if (existingEmail) {
       return NextResponse.json(
-        { error: "An account with this email already exists" },
+        { error: "Este email ya esta registrado" },
         { status: 409 }
       );
     }
 
+    // Check existing username
     const existingUsername = await prisma.user.findUnique({
       where: { username: usernameLower },
     });
 
     if (existingUsername) {
       return NextResponse.json(
-        { error: "This username is already taken" },
+        { error: "Este nombre de usuario ya esta en uso" },
         { status: 409 }
       );
     }
@@ -49,17 +70,35 @@ export async function POST(req: Request) {
         email: emailLower,
         username: usernameLower,
         password: hashedPassword,
+        height: height || null,
+        weight: weight || null,
+        bodyMeasurements: bodyMeasurements || null,
+        profilePhoto: profilePhoto || null,
+        avatar: avatar || null,
+        bio: gender ? `Gender: ${gender}` : null,
       },
     });
 
     return NextResponse.json(
-      { message: "Account created successfully", userId: user.id },
+      {
+        success: true,
+        user: { id: user.id, email: user.email, username: user.username },
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    const errMsg = (error as Error).message || "Unknown error";
+    console.error("Registration error:", errMsg);
+
+    if (errMsg.includes("Tenant or user not found")) {
+      return NextResponse.json(
+        { error: "Error de conexion a la base de datos. Intenta de nuevo." },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
+      { error: "Error al crear la cuenta. Intenta de nuevo." },
       { status: 500 }
     );
   }

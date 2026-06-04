@@ -50,9 +50,6 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Trending error:", error);
-    return NextResponse.json(
-      { error: "Failed to load trending" },
-      { status: 500 }
-    );
+    return NextResponse.json([]);
   }
 }

@@ -30,14 +30,24 @@ export default function CreatePostPage() {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"IMAGE" | "VIDEO">("IMAGE");
   const [caption, setCaption] = useState("");
+  const [style, setStyle] = useState("");
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResultData | null>(null);
   const [error, setError] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    processFile(file);
+  }
+
+  function processFile(file: File) {
+    if (file.size > 8 * 1024 * 1024) {
+      setError("La imagen es muy grande. Usa una foto de menos de 8MB.");
+      return;
+    }
 
     const isVideo = file.type.startsWith("video/");
     setMediaType(isVideo ? "VIDEO" : "IMAGE");
@@ -47,7 +57,6 @@ export default function CreatePostPage() {
       const result = reader.result as string;
       setMediaUrl(result);
 
-      // Auto-trigger scan for images
       if (!isVideo) {
         runScan(result);
       } else {
@@ -79,7 +88,7 @@ export default function CreatePostPage() {
         setCaption(data.suggestedCaption);
       }
     } catch {
-      setError("Failed to scan outfit. You can still publish your post.");
+      setError("Error al analizar outfit. Puedes continuar y publicar tu post.");
       setScanResult(null);
     } finally {
       setScanning(false);
@@ -100,6 +109,7 @@ export default function CreatePostPage() {
           mediaUrl,
           mediaType,
           caption: caption.trim() || undefined,
+          style: style || undefined,
           detectedItems: scanResult?.detectedItems || undefined,
           colorPalette: scanResult?.colorPalette || undefined,
           aiDescription: scanResult?.description || undefined,
@@ -107,15 +117,21 @@ export default function CreatePostPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to create post");
+        let errMsg = "Error al crear el post";
+        try {
+          const data = await res.json();
+          errMsg = data.error || errMsg;
+        } catch {
+          // If response isn't JSON
+        }
+        setError(errMsg);
         return;
       }
 
       router.push("/feed");
       router.refresh();
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Error de conexion. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -126,6 +142,7 @@ export default function CreatePostPage() {
     setStep("select");
     setScanResult(null);
     setCaption("");
+    setStyle("");
     setError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -133,125 +150,157 @@ export default function CreatePostPage() {
   const stepNumber = step === "select" ? 1 : step === "scan" ? 2 : 3;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-200 sticky top-0 bg-white z-50">
-        <div className="max-w-screen-md mx-auto px-4 h-14 flex items-center justify-between">
-          <button
-            onClick={() => {
-              if (step === "publish") {
-                setStep("scan");
-              } else if (step === "scan") {
-                handleClearMedia();
-              } else {
-                router.back();
-              }
-            }}
-            className="text-gray-700"
-          >
-            {step === "select" ? (
-              <XIcon className="w-6 h-6" />
-            ) : (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 19.5L8.25 12l7.5-7.5"
-                />
-              </svg>
-            )}
-          </button>
-          <h2 className="font-semibold">New Post</h2>
-          {step === "scan" ? (
-            <button
-              onClick={() => setStep("publish")}
-              disabled={scanning}
-              className="text-brand-500 font-semibold text-sm disabled:opacity-40"
-            >
-              Next
-            </button>
-          ) : step === "publish" ? (
-            <button
-              onClick={handlePublish}
-              disabled={!mediaUrl || loading}
-              className="text-brand-500 font-semibold text-sm disabled:opacity-40"
-            >
-              {loading ? "Posting..." : "Share"}
-            </button>
+      <header className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0 sticky top-0 bg-[rgba(10,10,15,0.85)] backdrop-blur-xl z-50">
+        <button
+          onClick={() => {
+            if (step === "publish") {
+              setStep("scan");
+            } else if (step === "scan") {
+              handleClearMedia();
+            } else {
+              router.back();
+            }
+          }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.06] transition-all duration-150 active:scale-90"
+        >
+          {step === "select" ? (
+            <XIcon className="w-4 h-4" />
           ) : (
-            <div className="w-12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
+            </svg>
           )}
-        </div>
+        </button>
+        <h2 className="text-base font-bold text-white tracking-tight">Nuevo post</h2>
+        {step === "scan" ? (
+          <button
+            onClick={() => setStep("publish")}
+            disabled={scanning}
+            className="text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors disabled:text-gray-700 disabled:cursor-not-allowed"
+          >
+            Siguiente
+          </button>
+        ) : step === "publish" ? (
+          <button
+            onClick={handlePublish}
+            disabled={!mediaUrl || loading}
+            className="text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors disabled:text-gray-700 disabled:cursor-not-allowed"
+          >
+            {loading ? "Publicando..." : "Compartir"}
+          </button>
+        ) : (
+          <div className="w-12" />
+        )}
       </header>
 
       {/* Step Indicator */}
       {mediaUrl && (
-        <div className="max-w-screen-md mx-auto px-4 pt-3 pb-1">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex-1 flex items-center gap-2">
-                <div
-                  className={`h-1 flex-1 rounded-full ${
-                    s <= stepNumber ? "bg-brand-500" : "bg-gray-200"
-                  }`}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-gray-400">Media</span>
-            <span className="text-[10px] text-gray-400">Scan</span>
-            <span className="text-[10px] text-gray-400">Publish</span>
-          </div>
+        <div className="flex items-center gap-1.5 px-5 py-3 border-b border-white/[0.04]">
+          {[1, 2, 3].map((s) => (
+            <div
+              key={s}
+              className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                s <= stepNumber
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500"
+                  : "bg-white/[0.08]"
+              }`}
+            />
+          ))}
         </div>
       )}
 
-      <div className="max-w-screen-md mx-auto">
+      <div className="max-w-screen-md mx-auto w-full flex-1 flex flex-col">
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm p-3 m-4 rounded-md">
+          <div className="mx-4 mt-4 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
             {error}
           </div>
         )}
 
         {/* Step 1: Select Media */}
         {step === "select" && !mediaUrl && (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="w-20 h-20 rounded-full bg-brand-50 flex items-center justify-center mb-4">
-              <svg
-                className="w-10 h-10 text-brand-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium mb-1">Share your look</p>
-            <p className="text-sm text-gray-500 mb-6">
-              Upload a photo or video of your outfit
-            </p>
-            <button
+          <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-6">
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                const file = e.dataTransfer.files[0];
+                if (file) processFile(file);
+              }}
               onClick={() => fileInputRef.current?.click()}
-              className="px-6 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors"
+              className={`relative w-full aspect-[4/5] max-h-[380px] rounded-[24px] border-2 border-dashed flex flex-col items-center justify-center gap-5 cursor-pointer group transition-all duration-300 overflow-hidden ${
+                isDragOver
+                  ? "border-purple-500/60 bg-purple-500/[0.06] shadow-[inset_0_0_40px_rgba(168,85,247,0.08)]"
+                  : "border-white/[0.1] hover:border-purple-500/50 hover:bg-purple-500/[0.03]"
+              }`}
             >
-              Select from device
-            </button>
+              {/* Radial glow background */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,rgba(168,85,247,0.04),transparent)] group-hover:bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,rgba(168,85,247,0.08),transparent)] transition-all duration-500" />
+
+              {/* Camera icon */}
+              <div className="relative w-20 h-20 rounded-[20px] bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 flex items-center justify-center group-hover:scale-105 group-hover:border-purple-500/40 transition-all duration-300">
+                <svg
+                  className="w-9 h-9 text-purple-400 group-hover:text-purple-300 transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
+                  />
+                </svg>
+              </div>
+
+              <p className="relative text-base font-bold text-white text-center">Comparte tu look</p>
+              <p className="relative text-sm text-gray-600 text-center leading-relaxed -mt-2">
+                Arrastra tu foto aquí o toca para seleccionar
+              </p>
+
+              {/* Format badges */}
+              <div className="relative flex items-center gap-3">
+                {["JPG", "PNG", "MP4", "HEIC"].map((fmt) => (
+                  <span
+                    key={fmt}
+                    className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-semibold text-gray-600 tracking-wider"
+                  >
+                    {fmt}
+                  </span>
+                ))}
+              </div>
+
+              {/* Select file button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="relative px-7 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold shadow-[0_0_25px_rgba(168,85,247,0.3)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.5)] transition-all duration-300 active:scale-95"
+              >
+                Seleccionar archivo
+              </button>
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -264,25 +313,28 @@ export default function CreatePostPage() {
 
         {/* Step 2: Scan Results */}
         {step === "scan" && mediaUrl && (
-          <div className="p-4 space-y-4">
-            {/* Compact Preview */}
-            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Image preview */}
+            <div className="relative w-full min-h-[350px] bg-[#0a0a0f] overflow-hidden flex-shrink-0">
               {mediaType === "VIDEO" ? (
                 <video
                   src={mediaUrl}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain min-h-[350px]"
                 />
               ) : (
-                <Image
-                  src={mediaUrl}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                />
+                <div className="relative w-full min-h-[350px]">
+                  <Image
+                    src={mediaUrl}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 640px"
+                  />
+                </div>
               )}
               <button
                 onClick={handleClearMedia}
-                className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1"
+                className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-black/60 backdrop-blur-sm border border-white/[0.1] text-gray-400 hover:text-white flex items-center justify-center transition-all active:scale-90"
               >
                 <XIcon className="w-4 h-4" />
               </button>
@@ -290,35 +342,42 @@ export default function CreatePostPage() {
 
             {/* Scanning State */}
             {scanning && (
-              <div className="flex flex-col items-center gap-3 py-8">
-                <div className="animate-spin h-8 w-8 border-3 border-brand-500 border-t-transparent rounded-full" />
-                <span className="text-sm text-gray-500 font-medium">
-                  Scanning your outfit...
-                </span>
-                <p className="text-xs text-gray-400">
-                  AI is detecting garments, colors, and brands
+              <div className="flex flex-col items-center gap-4 py-12">
+                <div className="w-10 h-10 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                  <span className="text-xs font-bold tracking-[0.2em] uppercase text-purple-400">
+                    AI analizando tu look
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Detectando prendas, colores y marcas
                 </p>
               </div>
             )}
 
             {/* Scan Results */}
             {!scanning && scanResult && (
-              <ScanResults
-                result={scanResult}
-                caption={caption}
-                onCaptionChange={setCaption}
-              />
+              <div className="flex-1 overflow-y-auto p-5 border-t border-white/[0.06]">
+                <ScanResults
+                  result={scanResult}
+                  caption={caption}
+                  onCaptionChange={setCaption}
+                  style={style}
+                  onStyleChange={setStyle}
+                />
+              </div>
             )}
 
             {/* No scan result (error case) */}
             {!scanning && !scanResult && !error && (
-              <div className="py-4">
+              <div className="p-5 border-t border-white/[0.06]">
                 <textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Write a caption..."
+                  placeholder="Escribe algo sobre tu look..."
                   rows={3}
-                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                  className="w-full text-sm bg-[#111118] border border-white/[0.08] rounded-2xl p-4 text-white placeholder:text-gray-700 resize-none focus:outline-none focus:border-purple-500/40 focus:shadow-[0_0_0_3px_rgba(168,85,247,0.1)] transition-all"
                 />
               </div>
             )}
@@ -327,60 +386,111 @@ export default function CreatePostPage() {
 
         {/* Step 3: Publish Review */}
         {step === "publish" && mediaUrl && (
-          <div className="p-4 space-y-4">
-            {/* Preview */}
-            <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-gray-100">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Image preview */}
+            <div className="relative w-full min-h-[350px] bg-[#0a0a0f] overflow-hidden flex-shrink-0">
               {mediaType === "VIDEO" ? (
                 <video
                   src={mediaUrl}
-                  className="w-full h-full object-cover"
+                  className="w-full min-h-[350px] object-contain"
                   controls
                 />
               ) : (
-                <Image
-                  src={mediaUrl}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                />
+                <div className="relative w-full min-h-[350px]">
+                  <Image
+                    src={mediaUrl}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 640px"
+                  />
+                </div>
               )}
             </div>
 
-            {/* Caption */}
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Write a caption..."
-              rows={3}
-              className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-            />
-
-            {/* Scan Summary */}
-            {scanResult && (
-              <div className="bg-brand-50 rounded-lg p-3">
-                <p className="text-xs font-semibold text-brand-600 mb-1">
-                  AI Scan Complete
+            {/* Publish details */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 border-t border-white/[0.06]">
+              {/* Caption */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">
+                  Caption
                 </p>
-                <p className="text-xs text-brand-500">
-                  {scanResult.detectedItems.length} garments detected
-                  {scanResult.colorPalette.length > 0 &&
-                    ` · ${scanResult.colorPalette.length} colors`}
-                </p>
-                <div className="flex gap-1 mt-2">
-                  {scanResult.colorPalette.map((color, i) => (
-                    <div
-                      key={i}
-                      className="w-5 h-5 rounded-full border border-brand-200"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
+                <textarea
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Escribe algo sobre tu look..."
+                  rows={3}
+                  className="w-full text-sm bg-[#111118] border border-white/[0.08] rounded-2xl p-4 text-white placeholder:text-gray-700 resize-none focus:outline-none focus:border-purple-500/40 focus:shadow-[0_0_0_3px_rgba(168,85,247,0.1)] transition-all"
+                />
               </div>
-            )}
 
-            <p className="text-xs text-gray-400 text-center">
-              Your post will be shared with your followers
-            </p>
+              {/* Style tag */}
+              {style && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-gray-500">
+                    Estilo:
+                  </span>
+                  <span className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 rounded-full">
+                    {style}
+                  </span>
+                </div>
+              )}
+
+              {/* Scan Summary */}
+              {scanResult && (
+                <div className="bg-[#16161f] border border-white/[0.06] rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400" />
+                    <p className="text-xs font-bold text-purple-400">
+                      AI scan completo
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {scanResult.detectedItems.length} prendas detectadas
+                    {scanResult.colorPalette.length > 0 &&
+                      ` · ${scanResult.colorPalette.length} colores`}
+                    {style && ` · ${style}`}
+                  </p>
+                  {scanResult.colorPalette.length > 0 && (
+                    <div className="flex gap-2">
+                      {scanResult.colorPalette.slice(0, 5).map((color, i) => (
+                        <div
+                          key={i}
+                          className="w-6 h-6 rounded-full border border-white/10"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[11px] text-gray-700 text-center">
+                Tu post sera visible para tus seguidores
+              </p>
+            </div>
+
+            {/* Publish button footer */}
+            <div className="flex-shrink-0 p-4 border-t border-white/[0.06] bg-[#111118]">
+              <button
+                onClick={handlePublish}
+                disabled={!mediaUrl || loading}
+                className={`w-full py-4 rounded-2xl font-bold text-sm transition-all duration-200 ${
+                  mediaUrl && !loading
+                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_0_25px_rgba(168,85,247,0.35)] hover:shadow-[0_0_40px_rgba(168,85,247,0.55)] hover:-translate-y-0.5 active:scale-[0.98]"
+                    : "bg-[#1a1a25] border border-white/[0.06] text-gray-600 cursor-not-allowed"
+                }`}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Publicando...
+                  </span>
+                ) : (
+                  "Publicar look →"
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
